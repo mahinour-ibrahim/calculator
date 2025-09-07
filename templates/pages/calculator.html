@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center" style="min-height:70vh;">
+  <div class="card shadow-lg p-3" style="width: 320px; border-radius: 15px;">
+    <div class="card-body">
+      <h4 class="text-center mb-3">🧮 Calculator</h4>
+      
+      <!-- Display -->
+      <input type="text" class="form-control text-end mb-3" id="display" readonly>
+
+      <!-- Buttons -->
+      <div class="row g-2">
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="clearDisplay()">C</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="append('/')">÷</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="append('*')">×</button></div>
+        <div class="col-3"><button class="btn btn-danger w-100" onclick="deleteLast()">⌫</button></div>
+
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('7')">7</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('8')">8</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('9')">9</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="append('-')">−</button></div>
+
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('4')">4</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('5')">5</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('6')">6</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="append('+')">+</button></div>
+
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('1')">1</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('2')">2</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('3')">3</button></div>
+        <div class="col-3" rowspan="2"><button class="btn btn-primary w-100 h-100" onclick="calculate()">=</button></div>
+
+        <div class="col-6"><button class="btn btn-light w-100" onclick="append('0')">0</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="append('.')">.</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden Form -->
+<form id="calcForm" method="post" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="num1" id="num1">
+  <input type="hidden" name="operation" id="operation">
+  <input type="hidden" name="num2" id="num2">
+  <input type="hidden" name="result" id="result">
+</form>
+
+<!-- History -->
+<div class="container mt-4" style="max-width:400px;">
+  <h5>📜 Recent History</h5>
+  <ul class="list-group">
+    {% for calc in calculations %}
+      <li class="list-group-item">
+        {{ calc.num1 }} {{ calc.operation }} {{ calc.num2 }} = {{ calc.result }}
+      </li>
+    {% empty %}
+      <li class="list-group-item">No calculations yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+
+<script>
+  let display = document.getElementById("display");
+
+  function append(value) {
+    display.value += value;
+  }
+
+  function clearDisplay() {
+    display.value = "";
+  }
+
+  function deleteLast() {
+    display.value = display.value.slice(0, -1);
+  }
+
+  function calculate() {
+    try {
+      let expression = display.value;
+      let result = eval(expression);
+      display.value = result;
+
+      // استخراج num1, operation, num2
+      let match = expression.match(/([\d.]+)\s*([\+\-\*\/])\s*([\d.]+)/);
+      if (match) {
+        document.getElementById("num1").value = match[1];
+        document.getElementById("operation").value = match[2];
+        document.getElementById("num2").value = match[3];
+        document.getElementById("result").value = result;
+
+        document.getElementById("calcForm").submit();
+      }
+    } catch {
+      display.value = "Error";
+    }
+  }
+</script>
+{% endblock %}
